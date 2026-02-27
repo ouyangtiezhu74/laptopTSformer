@@ -52,8 +52,8 @@ model = VisionTransformer(img_size=model_params["image_size"],
 checkpoint = torch.load(os.path.join(args["checkpoint_path"], "{}.pth".format(checkpoint_name)),
                         map_location=torch.device(device))
 model.load_state_dict(checkpoint['model_state_dict'])
-if torch.cuda.is_available():
-    model.cuda()
+model = model.to(device)
+model.eval()
 
 
 for sequence in sequences:
@@ -69,18 +69,15 @@ for sequence in sequences:
       pred_poses = torch.zeros((1, args["window_size"] - 1, 6), device=device)
       batchs.set_description(f"Sequence {sequence}")
       for images, gt in batchs:
-        if torch.cuda.is_available():
-          images, gt = images.cuda(), gt.cuda()
+        images = images.to(device)
+        gt = gt.to(device)
 
-          with torch.no_grad():
-            model.eval()
-            model.training = False
-
-            # predict pose
-            pred_pose = model(images.float())
-            pred_pose = torch.reshape(pred_pose, (args["window_size"] - 1, 6)).to(device)
-            pred_pose = pred_pose.unsqueeze(dim=0)
-            pred_poses = torch.concat((pred_poses, pred_pose), dim=0)
+        with torch.no_grad():
+          # predict pose
+          pred_pose = model(images.float())
+          pred_pose = torch.reshape(pred_pose, (args["window_size"] - 1, 6)).to(device)
+          pred_pose = pred_pose.unsqueeze(dim=0)
+          pred_poses = torch.concat((pred_poses, pred_pose), dim=0)
     
     # save as numpy array
     pred_poses = pred_poses[1:, :, :].cpu().detach().numpy()
