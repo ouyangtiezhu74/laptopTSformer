@@ -24,14 +24,14 @@ Data structure:
 """
 
 dataset_dir = f"..\dataset\sequences"
-new_root_dir = f"..\dataset\sequences_jpg"
+new_root_dir = f"..\dataset\sequences"
 image_nb = 0  # number of image folder (image_0, image_1, ... image_3)
 
 # create new directory
 if not os.path.exists(new_root_dir):
     os.makedirs(new_root_dir)
 
-for seq_nb in range(22): # list all sequences ["00", ... "21"]
+for seq_nb in [3, 4, 5, 6, 7, 10]: # list selected sequences ["03", "04", "05", "06", "07", "10"]
     # sequence as 2-digit string
     seq = "{:02d}".format(seq_nb)
    
