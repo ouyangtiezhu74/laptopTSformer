@@ -144,8 +144,14 @@ class KITTI(torch.utils.data.Dataset):
         frames = []
         seqs = []
         for sequence in self.sequences:
-            frames_dir = os.path.join(self.data_path, sequence, "image_{}".format(self.camera_id), "*.jpg")
-            frames_seq = sorted(glob.glob(frames_dir))
+            frames_base_dir = os.path.join(self.data_path, sequence, "image_{}".format(self.camera_id))
+            frames_seq = []
+
+            # Support different image extensions used across KITTI setups.
+            for ext in ("jpg", "JPG", "jpeg", "JPEG", "png", "PNG"):
+                frames_seq.extend(glob.glob(os.path.join(frames_base_dir, f"*.{ext}")))
+            frames_seq = sorted(frames_seq)
+
             frames = frames + frames_seq
             seqs = seqs + [sequence] * len(frames_seq)
         return frames, seqs
