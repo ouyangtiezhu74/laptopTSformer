@@ -29,3 +29,25 @@ data
 .gitattributes
 checkpoints
 checkpoints/
+# --- local datasets / generated data (DO NOT TRACK) ---
+data/
+dataset/
+datasets/
+
+# common heavy artifacts
+*.pth
+*.pkl
+*.pt
+*.ckpt
+*.npy
+*.npz
+
+# logs / outputs
+runs/
+logs/
+checkpoints/
+model*/
+results/
+outputs/
+__pycache__/
+*.log
