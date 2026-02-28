@@ -1,5 +1,6 @@
 import glob
 import os
+from pathlib import Path
 import pandas as pd
 import numpy as np
 from PIL import Image
@@ -139,13 +140,33 @@ class KITTI(torch.utils.data.Dataset):
             self.cam_params["cx"] = cx
             self.cam_params["cy"] = cy
 
+    def _resolve_image_dir(self, sequence):
+        sequence_dir = Path(self.data_path) / sequence
+        preferred_dir = sequence_dir / f"image_{self.camera_id}"
+        if preferred_dir.is_dir():
+            return preferred_dir
+
+        image_dirs = sorted([d for d in sequence_dir.glob("image_*") if d.is_dir()])
+        if not image_dirs:
+            raise FileNotFoundError(f"No image_* directory found in {sequence_dir}")
+
+        return image_dirs[0]
+
+    def _resolve_pattern(self, image_dir):
+        patterns = ["*.jpg", "*.jpeg", "*.png"]
+        for pattern in patterns:
+            if list(image_dir.glob(pattern)):
+                return pattern
+        raise FileNotFoundError(f"No supported image files (.jpg/.jpeg/.png) found in {image_dir}")
+
     def read_frames(self):
         # Get frames list
         frames = []
         seqs = []
         for sequence in self.sequences:
-            frames_dir = os.path.join(self.data_path, sequence, "image_{}".format(self.camera_id), "*.jpg")
-            frames_seq = sorted(glob.glob(frames_dir))
+            image_dir = self._resolve_image_dir(sequence)
+            pattern = self._resolve_pattern(image_dir)
+            frames_seq = sorted(glob.glob(str(image_dir / pattern)))
             frames = frames + frames_seq
             seqs = seqs + [sequence] * len(frames_seq)
         return frames, seqs

@@ -6,6 +6,7 @@
 
 Official repository of "[Transformer-Based Model for Monocular Visual Odometry: A Video Understanding Approach](https://ieeexplore.ieee.org/document/10845764)"
 
+
 ## Abstract
 *Estimating the camera’s pose given images from a single camera is a traditional task in mobile robots and autonomous vehicles. This problem is called monocular visual odometry and often relies on geometric approaches that require considerable engineering effort for a specific scenario. Deep learning methods have been shown to be generalizable after proper training and with a large amount of available data. Transformer-based architectures have dominated the state-of-the-art in natural language processing and computer vision tasks, such as image and video understanding. In this work, we deal with the monocular visual odometry as a video understanding task to estimate the 6 degrees of freedom of a camera’s pose. We contribute by presenting the TSformer-VO model based on spatio-temporal self-attention mechanisms to extract features from clips and estimate the motions in an end-to-end manner. Our approach achieved competitive state-of-the-art performance compared with geometry-based and deep learning-based methods on the KITTI visual odometry dataset, outperforming the DeepVO implementation highly accepted in the visual odometry community.*
 
@@ -22,7 +23,7 @@ Official repository of "[Transformer-Based Model for Monocular Visual Odometry: 
 ## 1. Dataset
 Download the [KITTI odometry dataset (grayscale).](https://www.cvlibs.net/datasets/kitti/eval_odometry.php)
 
-In this work, we use the `.jpg` format. You can convert the dataset to `.jpg` format with [png_to_jpg.py.](https://github.com/aofrancani/DPT-VO/blob/main/util/png_to_jpg.py)
+In this work, we usually use the `.jpg` format. You can convert the dataset to `.jpg` format with [png_to_jpg.py.](https://github.com/aofrancani/DPT-VO/blob/main/util/png_to_jpg.py). The dataloader also supports original KITTI `.png` images (`image_0`/`image_1`) and will auto-detect available camera folders.
 
 Create a simbolic link (Windows) or a softlink (Linux) to the dataset in the `dataset` folder:
 
@@ -30,6 +31,17 @@ Create a simbolic link (Windows) or a softlink (Linux) to the dataset in the `da
 ```mklink /D <path_to_your_project>\TSformer-VO\data <path_to_your_downloaded_data>```
 - On Linux: 
 ```ln -s <path_to_your_downloaded_data> <path_to_your_project>/TSformer-VO/data```
+
+Create a symbolic link (Windows junction or Linux soft link) so the project path `data/sequences_jpg` points to your external KITTI `dataset/sequences` folder:
+
+- Windows (recommended, no admin required):
+```bash
+python scripts/create_data_softlink.py --source "F:\kitti_00_10\dataset\sequences"
+```
+- Linux/macOS:
+```bash
+python scripts/create_data_softlink.py --source /path/to/kitti_00_10/dataset/sequences
+```
 
 The data structure should be as follows:
 ```
