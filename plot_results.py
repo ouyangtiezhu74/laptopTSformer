@@ -97,7 +97,7 @@ def recover_trajectory_and_poses(poses):
     predicted_poses = []
     # recover predicted trajectory
     predicted_trajectory = []
-    for i in range(len(poses)-1):
+    for i in range(len(poses)):
         if i == 0:
             T = np.eye(4)
 
@@ -122,6 +122,13 @@ def recover_trajectory_and_poses(poses):
         predicted_trajectory.append(T_abs[:3, 3])
 
     return predicted_poses, predicted_trajectory
+
+
+def load_kitti_absolute_trajectory(sequence, gt_path="data/poses"):
+    """Load KITTI absolute trajectory xyz from a pose txt file."""
+    pose_file = os.path.join(gt_path, f"{sequence}.txt")
+    gt_abs_poses = np.loadtxt(pose_file).reshape(-1, 12)
+    return gt_abs_poses[:, [3, 7, 11]]
   
 
 if __name__ == "__main__":
@@ -151,14 +158,19 @@ if __name__ == "__main__":
         save_trajectory(pred_poses, sequence, 
                         save_dir=os.path.join(args["checkpoint_path"], "pred_poses"))
 
-        # get ground truth trajectories
-        test_data = KITTI(sequences=[sequence], window_size=args["window_size"])
-        gt_poses = test_data.windowed_data.loc[test_data.windowed_data["sequence"]==sequence, [3, 7, 11]]
+        # get ground truth trajectory (KITTI absolute poses, one row per frame)
+        gt_trajectory = load_kitti_absolute_trajectory(sequence)
+
+        # pred trajectory is integrated from relative poses (starts after first motion),
+        # so align lengths to avoid indexing mismatch.
+        pred_trajectory = np.asarray(pred_trajectory)
+        max_len = min(len(pred_trajectory), len(gt_trajectory))
+        pred_trajectory = pred_trajectory[:max_len]
+        gt_trajectory = gt_trajectory[:max_len]
 
         plt.figure()
-        pred_trajectory = np.asarray(pred_trajectory)
         plt.plot([x[0] for x in pred_trajectory], [z[2] for z in pred_trajectory], "b")  # plot estimated trajectory
-        plt.plot([x[0] for x in gt_poses.values], [z[2] for z in gt_poses.values], "r")  # plot ground truth trajectory
+        plt.plot([x[0] for x in gt_trajectory], [z[2] for z in gt_trajectory], "r")  # plot ground truth trajectory
         plt.grid()
         plt.title("VO - Seq {}".format(sequence))
         plt.xlabel("Translation in x direction [m]")
